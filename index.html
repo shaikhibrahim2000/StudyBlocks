@@ -4,73 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Block Coder</title>
-    <style>
-        /* Basic styling will be added in Milestone 2 */
-        body {
-            font-family: sans-serif;
-            display: flex;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
-        }
-        #palette {
-            width: 200px;
-            background-color: #ffffff;
-            border-right: 2px solid #d1d5db;
-            padding: 15px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
-        #main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        #canvas {
-            flex-grow: 1;
-            padding: 20px;
-            border-bottom: 2px solid #d1d5db;
-            background-color: #fafafa;
-        }
-        #output-container {
-            height: 200px;
-            background-color: #1e293b;
-            color: #e2e8f0;
-            padding: 15px;
-            font-family: monospace;
-            overflow-y: auto;
-        }
-        h2 {
-            margin-top: 0;
-            font-size: 1.2em;
-            color: #334155;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 8px;
-        }
-        .block {
-            padding: 10px 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            background-color: #3b82f6;
-            color: white;
-            text-align: center;
-            font-weight: bold;
-            cursor: grab;
-            user-select: none;
-        }
-    </style>
+    <!-- Link to the external stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Milestone 1: The Block Palette -->
+    <!-- The Block Palette -->
     <div id="palette">
         <h2>Blocks</h2>
-        <div class="block" draggable="true" data-type="start">Start</div>
-        <div class="block" draggable="true" data-type="print">Print "Hello"</div>
-        <div class="block" draggable="true" data-type="loop">Loop 3 times</div>
-        <div class="block" draggable="true" data-type="if">If ...</div>
+        <!-- Added specific classes for coloring -->
+        <div class="block block-start" draggable="true" data-type="start">Start</div>
+        <div class="block block-io" draggable="true" data-type="print">Print "Hello"</div>
+        <div class="block block-control" draggable="true" data-type="loop">Loop 3 times</div>
+        <div class="block block-control" draggable="true" data-type="if">If ...</div>
     </div>
 
-    <!-- Milestone 1: The Main Area for Canvas and Output -->
+    <!-- The Main Area for Canvas and Output -->
     <div id="main-content">
         <!-- The Canvas where blocks are dropped -->
         <div id="canvas">
@@ -91,3 +40,4 @@
 
 </body>
 </html>
+
