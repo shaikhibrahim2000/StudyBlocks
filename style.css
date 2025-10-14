@@ -89,6 +89,11 @@ h2 {
     transform: scale(1.05);
 }
 
+.block.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
 /* Specific Block Colors for better organization */
 .block-start {
     background-color: #10b981; /* Green */
@@ -109,3 +114,4 @@ h2 {
 .canvas-block {
     margin: 10px 0;
 }
+
