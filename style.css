@@ -74,6 +74,8 @@ body {
     border-bottom: 1px solid #d1d5db;
     background-color: #fafafa;
     transition: background-color 0.3s ease;
+    /* This makes the canvas scroll when full, instead of expanding */
+    overflow-y: auto;
 }
 
 /* Give user feedback when dragging over the canvas */
@@ -85,7 +87,11 @@ body {
 
 /* Output Area Styling */
 #output-container {
-    height: 200px;
+    /* Use min-height so it's at least 200px */
+    min-height: 200px;
+    /* Add flex-shrink: 0 to prevent it from shrinking */
+    flex-shrink: 0;
+    
     background-color: #0f172a;
     color: #94a3b8;
     padding: 15px;
@@ -148,6 +154,34 @@ h2 {
 .block-control {
     background-color: #f97316; /* Orange */
     border-bottom: 4px solid #ea580c;
+}
+
+/* New Variable Block Color */
+.block-variable {
+    background-color: #8b5cf6; /* Purple */
+    border-bottom: 4px solid #7c3aed;
+}
+
+/* New styles for inputs inside blocks */
+.block-input {
+    border: none;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    width: 80px;
+    margin: 0 4px;
+}
+
+.block-input.short {
+    width: 40px;
+}
+
+/* Make placeholder text slightly lighter */
+.block-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
 }
 
 /* Placeholder for dropped blocks in the canvas */

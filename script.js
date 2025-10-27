@@ -1,172 +1,207 @@
-// Wait for DOM to be fully loaded
+// Wait for the webpage (DOM) to fully load before running the script
 document.addEventListener('DOMContentLoaded', () => {
-    // Select all necessary elements
-    const blocks = document.querySelectorAll('#palette .block');
-    const canvas = document.getElementById('canvas');
     
-    console.log('DOM loaded. Found', blocks.length, 'blocks and canvas:', canvas);
+    // --- 1. SELECT ELEMENTS ---
+    // Get all needed HTML elements once at the start
+    const blocks = document.querySelectorAll('#palette .block'); // draggable code blocks
+    const canvas = document.getElementById('canvas');            // drop area
+    const runButton = document.getElementById('run-btn');        // run button
+    const output = document.getElementById('output');            // output display
+    
+    console.log('DOM loaded. Initializing listeners...');
 
-// Add drag event listeners to each block in the palette
-blocks.forEach(block => {
-    // Fired when the user starts dragging a block
-    block.addEventListener('dragstart', (e) => {
-        block.classList.add('dragging');
-        // Store both the HTML and the block type for better reliability
-        e.dataTransfer.setData('text/html', block.outerHTML);
-        e.dataTransfer.setData('text/plain', block.dataset.type);
-        e.dataTransfer.effectAllowed = 'copy';
-        console.log('Drag started for:', block.dataset.type);
+    
+    // --- 2. DRAG AND DROP LOGIC ---
+    // Allow users to drag blocks from the palette to the canvas
+    blocks.forEach(block => {
+
+        // When dragging starts
+        block.addEventListener('dragstart', (e) => {
+            block.classList.add('dragging'); // style change
+            e.dataTransfer.setData('text/html', block.outerHTML); // store block HTML
+            console.log('Drag started for:', block.dataset.type);
+        });
+
+        // When dragging stops
+        block.addEventListener('dragend', () => {
+            block.classList.remove('dragging');
+        });
     });
 
-    // Fired when the user stops dragging the block
-    block.addEventListener('dragend', () => {
-        block.classList.remove('dragging');
+    // Allow dropping over the canvas
+    canvas.addEventListener('dragover', (e) => {
+        e.preventDefault(); // necessary for drop to work
+        canvas.classList.add('drag-over'); // visual cue
     });
-});
 
-// Fired continuously while a dragged element is over the canvas
-canvas.addEventListener('dragover', (e) => {
-    // This is crucial to allow a drop to occur
-    e.preventDefault();
-    canvas.classList.add('drag-over');
-});
-
-// Fired when a dragged element leaves the canvas
-canvas.addEventListener('dragleave', (e) => {
-    // Only remove the class if we're actually leaving the canvas (not just moving to a child element)
-    if (!canvas.contains(e.relatedTarget)) {
+    // When dragged block leaves the canvas area
+    canvas.addEventListener('dragleave', () => {
         canvas.classList.remove('drag-over');
-    }
-});
+    });
 
-// Fired when a dragged element is dropped on the canvas
-canvas.addEventListener('drop', (e) => {
-    e.preventDefault(); // This prevents the browser's default drop behavior
-    e.stopPropagation(); // Stop the event from bubbling up
-    canvas.classList.remove('drag-over');
-    console.log('Drop event fired on canvas!');
+    // When block is dropped on the canvas
+    canvas.addEventListener('drop', (e) => {
+        e.preventDefault();
+        canvas.classList.remove('drag-over');
+        console.log('Drop event fired on canvas!');
 
-    // Try to get the block data we stored in dragstart
-    let blockHTML = e.dataTransfer.getData('text/html');
-    const blockType = e.dataTransfer.getData('text/plain');
-    
-    console.log('Retrieved HTML:', blockHTML);
-    console.log('Retrieved type:', blockType);
+        // Get the HTML of the dragged block
+        const blockHTML = e.dataTransfer.getData('text/html');
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = blockHTML;
+        const newBlock = tempDiv.firstElementChild;
 
-    // If HTML retrieval failed, try to recreate from type
-    if (!blockHTML && blockType) {
-        console.log('HTML retrieval failed, recreating from type:', blockType);
-        const originalBlock = document.querySelector(`[data-type="${blockType}"]`);
-        if (originalBlock) {
-            blockHTML = originalBlock.outerHTML;
+        if (!newBlock) {
+            console.error('Could not create new block from HTML.');
+            return;
         }
-    }
 
-    if (!blockHTML) {
-        console.error('Could not retrieve block data.');
-        return;
-    }
+        // Make the new block static (not draggable again)
+        newBlock.setAttribute('draggable', 'false');
+        newBlock.classList.remove('dragging');
+        newBlock.classList.add('canvas-block');
 
-    // Create a new element from the stored HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = blockHTML;
-    
-    // Using firstElementChild is safer than firstChild, as it ignores whitespace nodes
-    const newBlock = tempDiv.firstElementChild;
-    
-    if (!newBlock) {
-        console.error('Could not create new block from HTML.');
-        return;
-    }
+        // Prevent text input from interfering with dragging
+        const inputs = newBlock.querySelectorAll('.block-input');
+        inputs.forEach(input => {
+            input.addEventListener('mousedown', (e) => e.stopPropagation());
+        });
 
-    // The new block on the canvas should not be draggable again
-    newBlock.setAttribute('draggable', 'false');
-    newBlock.classList.remove('dragging');
-    newBlock.classList.add('canvas-block');
+        // Add the block to the canvas
+        canvas.appendChild(newBlock);
+        console.log('New block appended to canvas.');
+    });
 
-    // Add some styling to show it's been placed
-    newBlock.style.margin = '10px 0';
-    newBlock.style.opacity = '1';
 
-    // Append the new, copied block to the canvas
-    canvas.appendChild(newBlock);
-    console.log('New block appended to canvas:', newBlock);
-});
+    // --- 3. RUN PROGRAM (INTERPRETER) ---
+    runButton.addEventListener('click', () => {
+        console.log('Run button clicked!');
+        output.textContent = ''; // clear output before running
+        
+        const blocksOnCanvas = canvas.querySelectorAll('.canvas-block'); // get all placed blocks
+        const variables = {};        // variable storage (like memory)
+        let skipNextBlock = false;   // used for 'if' and 'else' logic
+        let lastIfResult = null;     // remembers if the last 'if' was true or false
 
-}); // End of DOMContentLoaded
+        // Helper to display messages in output
+        function logToOutput(message) {
+            output.textContent += message + '\n';
+        }
 
-// --- Existing Drag and Drop Code Above ---
-// ... (all the code from Milestone 3) ...
+        // Helper to interpret or evaluate input values
+        function evaluate(value) {
+            // Return variable value if it exists
+            if (variables.hasOwnProperty(value)) return variables[value];
+            // Handle string values in quotes
+            if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))
+                return value.substring(1, value.length - 1);
+            // Try to calculate math or number expressions
+            try {
+                return new Function('return ' + value)();
+            } catch {
+                return value; // return raw value if evaluation fails
+            }
+        }
 
-// ----------------------------------------
-// --- MILESTONE 4: CODE INTERPRETER ---
-// ----------------------------------------
+        // --- MAIN PROGRAM EXECUTION LOOP ---
+        for (let i = 0; i < blocksOnCanvas.length; i++) {
+            const block = blocksOnCanvas[i];
+            const blockType = block.dataset.type;
+            const inputs = block.querySelectorAll('.block-input');
 
-// Select the new button and the output element
-const runButton = document.getElementById('run-btn');
-const output = document.getElementById('output');
+            // Skip block if previous 'if' was false
+            if (skipNextBlock) {
+                skipNextBlock = false;
+                if (blockType !== 'else') continue; // don't skip an 'else'
+            }
 
-// Add a click listener to the run button
-runButton.addEventListener('click', () => {
-    console.log('Run button clicked!');
-    
-    // 1. Clear the output area
-    output.textContent = '';
-
-    // 2. Get all the blocks currently on the canvas
-    const blocksOnCanvas = canvas.querySelectorAll('.canvas-block');
-
-    // Helper function to add lines to our output
-    function logToOutput(message) {
-        output.textContent += message + '\n';
-    }
-
-    // 3. Loop through the blocks and "execute" them
-    // We use a standard for loop so we can control the index (i)
-    for (let i = 0; i < blocksOnCanvas.length; i++) {
-        const block = blocksOnCanvas[i];
-        const blockType = block.dataset.type;
-
-        // Use a switch statement to handle different block types
-        switch (blockType) {
-            case 'start':
-                logToOutput('--- Program Start ---');
-                break;
-            
-            case 'print':
-                // For now, we'll just print the hardcoded text
-                logToOutput('Hello');
-                break;
-            
-            case 'loop':
-                // This is a simple loop interpreter
-                // It will execute the *next* block 3 times.
-                logToOutput('Loop 3 times:');
+            switch (blockType) {
+                case 'start':
+                    logToOutput('--- Program Start ---');
+                    break;
                 
-                // Find the next block
-                const nextBlock = blocksOnCanvas[i + 1];
+                case 'print':
+                    // Print text or number
+                    logToOutput(evaluate(inputs[0].value));
+                    break;
+
+                case 'printVar':
+                    // Print variable value
+                    const varName = inputs[0].value;
+                    if (variables.hasOwnProperty(varName))
+                        logToOutput(variables[varName]);
+                    else
+                        logToOutput(`Error: Variable '${varName}' not found.`);
+                    break;
                 
-                if (nextBlock) {
-                    // Check what the next block is
-                    if (nextBlock.dataset.type === 'print') {
-                        // Run the 'print' action 3 times
-                        for (let j = 0; j < 3; j++) {
-                            logToOutput('  > Hello');
+                case 'setVar':
+                    // Create or update variable
+                    const name = inputs[0].value;
+                    const value = evaluate(inputs[1].value);
+                    variables[name] = value;
+                    logToOutput(`(Set ${name} = ${value})`);
+                    break;
+
+                case 'loop':
+                    // Repeat the next block multiple times
+                    const loopCount = evaluate(inputs[0].value);
+                    const nextBlock = blocksOnCanvas[i + 1];
+
+                    if (nextBlock && typeof loopCount === 'number' && loopCount > 0) {
+                        logToOutput(`Loop ${loopCount} times:`);
+                        const nextBlockType = nextBlock.dataset.type;
+                        const nextBlockInputs = nextBlock.querySelectorAll('.block-input');
+
+                        // Run the next block repeatedly
+                        for (let j = 0; j < loopCount; j++) {
+                            if (nextBlockType === 'print')
+                                logToOutput('  > ' + evaluate(nextBlockInputs[0].value));
+                            else if (nextBlockType === 'printVar') {
+                                const vName = nextBlockInputs[0].value;
+                                logToOutput('  > ' + (variables.hasOwnProperty(vName) ? variables[vName] : 'Error'));
+                            }
                         }
+                        i++; // skip the next block since it's already executed inside the loop
+                    } else {
+                        logToOutput('(Loop block error or no block to loop)');
                     }
-                    // We've processed the next block, so we skip it
-                    // in the main loop by incrementing 'i'
-                    i++; 
-                } else {
-                    logToOutput('  > (No block to loop)');
-                }
-                break;
-            
-            case 'if':
-                // We'll add logic for this in the next milestone
-                logToOutput('(If block - logic not implemented)');
-                break;
-        }
-    }
-});
+                    break;
+                
+                case 'if':
+                    // Simple 'if' condition controlling the next block
+                    let condition = inputs[0].value;
+                    // Replace variable names with actual values
+                    for (let varName in variables) {
+                        condition = condition.replace(new RegExp('\\b' + varName + '\\b', 'g'), variables[varName]);
+                    }
 
+                    try {
+                        const result = new Function('return ' + condition)();
+                        logToOutput(`If (${condition}) is ${result}`);
+                        lastIfResult = result;
+                        if (!result) skipNextBlock = true; // skip next if condition is false
+                    } catch (e) {
+                        logToOutput(`Error in If condition: ${e.message}`);
+                        skipNextBlock = true;
+                        lastIfResult = false;
+                    }
+                    break;
+                
+                case 'else':
+                    // 'Else' executes only if the previous 'if' was false
+                    logToOutput('Else');
+                    if (lastIfResult === null) {
+                        logToOutput('Error: "Else" block without a preceding "If" block.');
+                        skipNextBlock = true;
+                    } else if (lastIfResult === true) {
+                        skipNextBlock = true; // skip if previous 'if' was true
+                    } else {
+                        skipNextBlock = false; // run if previous 'if' was false
+                    }
+                    lastIfResult = null; // reset flag
+                    break;
+            }
+        }
+    });
+
+}); // --- End of DOMContentLoaded ---

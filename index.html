@@ -12,11 +12,33 @@
     <!-- The Block Palette -->
     <div id="palette">
         <h2>Blocks</h2>
-        <!-- Added specific classes for coloring -->
         <div class="block block-start" draggable="true" data-type="start">Start</div>
-        <div class="block block-io" draggable="true" data-type="print">Print "Hello"</div>
-        <div class="block block-control" draggable="true" data-type="loop">Loop 3 times</div>
-        <div class="block block-control" draggable="true" data-type="if">If ...</div>
+        
+        <!-- IO Blocks -->
+        <div class="block block-io" draggable="true" data-type="print">
+            Print <input type="text" class="block-input" value='"Hello"'>
+        </div>
+        <div class="block block-io" draggable="true" data-type="printVar">
+            Print variable <input type="text" class="block-input" value='x' placeholder="var name">
+        </div>
+
+        <!-- New Variable Block -->
+        <div class="block block-variable" draggable="true" data-type="setVar">
+            Set <input type="text" class="block-input short" value='x'>
+            to <input type="text" class="block-input" value='10'>
+        </div>
+        
+        <!-- Updated Control Blocks -->
+        <div class="block block-control" draggable="true" data-type="loop">
+            Loop <input type="text" class="block-input short" value='3'> times
+        </div>
+        <div class="block block-control" draggable="true" data-type="if">
+            If <input type="text" class="block-input" value='x == 10' placeholder="condition">
+        </div>
+        <!-- NEW ELSE BLOCK -->
+        <div class="block block-control" draggable="true" data-type="else">
+            Else
+        </div>
     </div>
 
     <!-- The Main Area for Canvas and Output -->
@@ -24,7 +46,6 @@
         <!-- The Canvas where blocks are dropped -->
         <div id="canvas-header">
             <h2>Canvas</h2>
-            <!-- Added a Run Button -->
             <button id="run-btn">Run Code</button>
         </div>
         <div id="canvas">
@@ -38,7 +59,7 @@
         </div>
     </div>
 
-    <!-- Link to our new external JavaScript file -->
+    <!-- Link to the external JavaScript file -->
     <script src="script.js"></script>
 
 </body>
