@@ -95,3 +95,78 @@ canvas.addEventListener('drop', (e) => {
 
 }); // End of DOMContentLoaded
 
+// --- Existing Drag and Drop Code Above ---
+// ... (all the code from Milestone 3) ...
+
+// ----------------------------------------
+// --- MILESTONE 4: CODE INTERPRETER ---
+// ----------------------------------------
+
+// Select the new button and the output element
+const runButton = document.getElementById('run-btn');
+const output = document.getElementById('output');
+
+// Add a click listener to the run button
+runButton.addEventListener('click', () => {
+    console.log('Run button clicked!');
+    
+    // 1. Clear the output area
+    output.textContent = '';
+
+    // 2. Get all the blocks currently on the canvas
+    const blocksOnCanvas = canvas.querySelectorAll('.canvas-block');
+
+    // Helper function to add lines to our output
+    function logToOutput(message) {
+        output.textContent += message + '\n';
+    }
+
+    // 3. Loop through the blocks and "execute" them
+    // We use a standard for loop so we can control the index (i)
+    for (let i = 0; i < blocksOnCanvas.length; i++) {
+        const block = blocksOnCanvas[i];
+        const blockType = block.dataset.type;
+
+        // Use a switch statement to handle different block types
+        switch (blockType) {
+            case 'start':
+                logToOutput('--- Program Start ---');
+                break;
+            
+            case 'print':
+                // For now, we'll just print the hardcoded text
+                logToOutput('Hello');
+                break;
+            
+            case 'loop':
+                // This is a simple loop interpreter
+                // It will execute the *next* block 3 times.
+                logToOutput('Loop 3 times:');
+                
+                // Find the next block
+                const nextBlock = blocksOnCanvas[i + 1];
+                
+                if (nextBlock) {
+                    // Check what the next block is
+                    if (nextBlock.dataset.type === 'print') {
+                        // Run the 'print' action 3 times
+                        for (let j = 0; j < 3; j++) {
+                            logToOutput('  > Hello');
+                        }
+                    }
+                    // We've processed the next block, so we skip it
+                    // in the main loop by incrementing 'i'
+                    i++; 
+                } else {
+                    logToOutput('  > (No block to loop)');
+                }
+                break;
+            
+            case 'if':
+                // We'll add logic for this in the next milestone
+                logToOutput('(If block - logic not implemented)');
+                break;
+        }
+    }
+});
+

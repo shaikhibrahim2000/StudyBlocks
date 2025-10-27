@@ -27,6 +27,46 @@ body {
     flex-direction: column;
 }
 
+/* New header for the canvas to hold the button */
+#canvas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #d1d5db;
+}
+
+#canvas-header h2 {
+    margin: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Style for the new Run button */
+#run-btn {
+    background-color: #10b981; /* Green */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 4px solid #059669;
+}
+
+#run-btn:hover {
+    background-color: #059669;
+}
+
+#run-btn:active {
+    background-color: #047857;
+    border-bottom: 2px solid #047857;
+    transform: translateY(2px);
+}
+
 /* Canvas Styling */
 #canvas {
     flex-grow: 1;
@@ -89,9 +129,9 @@ h2 {
     transform: scale(1.05);
 }
 
+/* Style for the block being dragged from the palette */
 .block.dragging {
     opacity: 0.5;
-    transform: rotate(5deg);
 }
 
 /* Specific Block Colors for better organization */
@@ -114,4 +154,3 @@ h2 {
 .canvas-block {
     margin: 10px 0;
 }
-
